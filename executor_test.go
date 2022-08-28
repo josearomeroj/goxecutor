@@ -29,13 +29,6 @@ func TestNewSingleThreadExecutor(t *testing.T) {
 	arrayTest(e, int(num), t)
 }
 
-/*func TestMillionConcurrent(t *testing.T) {
-	num := 1000000
-	e := NewFixedPoolExecutor(uint32(num))
-
-	arrayTest(e, int(num), t)
-}*/
-
 func arrayTest(e Executor, num int, t *testing.T) {
 	arr := make([]int, num)
 
@@ -70,14 +63,14 @@ func TestExecutor_Destroy(t *testing.T) {
 	e.Destroy()
 	e.Wait()
 
-	/*	defer func() {
-			r := recover()
-			assert.NotNilf(t, r, "code did not panick")
-		}()
+	defer func() {
+		r := recover()
+		assert.NotNilf(t, r, "code did not panick")
+	}()
 
-		e.Submit(func() {
-			print("this submit cannot be made")
-		})*/
+	e.Submit(func() {
+		print("this submit cannot be made")
+	})
 }
 
 func TestExecutor_SubmitWithPriority(t *testing.T) {
