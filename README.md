@@ -1,6 +1,6 @@
 # Goxecutor
 
-![Build Status](https://github.com/josearomeroj/goxecutor/actions/workflows/go.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/josearomeroj/goxecutor/badge.svg?branch=main)](https://coveralls.io/github/josearomeroj/goxecutor?branch=main)
+![Build Status](https://github.com/josearomeroj/goxecutor/actions/workflows/build.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/josearomeroj/goxecutor/badge.svg?branch=main)](https://coveralls.io/github/josearomeroj/goxecutor?branch=main)
 
 Goxecutor is a simple worker pool for Go with the ability to add tasks with priority.
 
