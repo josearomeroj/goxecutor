@@ -29,6 +29,17 @@ func TestNewSingleThreadExecutor(t *testing.T) {
 	arrayTest(e, int(num), t)
 }
 
+func TestWrongWorkers(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		assert.NotNil(t, r)
+	}()
+
+	_ = NewFixedPoolExecutor(0)
+}
+
 func arrayTest(e Executor, num int, t *testing.T) {
 	arr := make([]int, num)
 
@@ -78,7 +89,7 @@ func TestExecutor_SubmitWithPriority(t *testing.T) {
 
 	e := NewSingleThreadExecutor()
 	e.Submit(func() {
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 	})
 
 	arr := make([]int32, 3)

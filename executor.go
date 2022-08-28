@@ -23,8 +23,7 @@ type Executor interface {
 }
 
 type executor struct {
-	destroyed    bool
-	destroyMutex *sync.Mutex
+	destroyed bool
 
 	maxPoolSize uint32
 	poolSize    uint32
@@ -71,8 +70,6 @@ func newExecutor(maxPoolSize uint32) *executor {
 
 		waitTasks: &sync.WaitGroup{},
 
-		destroyMutex: &sync.Mutex{},
-
 		handlerReceiver: make(chan int, 0),
 		newTaskReceiver: make(chan int, 0),
 	}
@@ -99,8 +96,9 @@ func (e *executor) startTaskHandler() {
 
 func (e *executor) onWorkerFreeHandler() {
 	e.poolMutex.Lock()
+	defer e.poolMutex.Unlock()
+
 	e.freeWorkers++
-	e.poolMutex.Unlock()
 
 	if e.destroyed && e.poolSize == e.freeWorkers {
 		return
@@ -109,17 +107,19 @@ func (e *executor) onWorkerFreeHandler() {
 
 func (e *executor) onNewTaskHandler() {
 	e.poolMutex.Lock()
+	e.tasksMutex.Lock()
+
+	defer e.tasksMutex.Unlock()
+	defer e.poolMutex.Unlock()
+
 	if e.freeWorkers > 0 {
 		e.freeWorkers--
 		e.newTaskReceiver <- signal
 	} else if e.poolSize < e.maxPoolSize {
 		e.poolSize += 1
-
 		go e.startWorker()
 		e.newTaskReceiver <- signal
 	}
-
-	e.poolMutex.Unlock()
 }
 
 // Submit adds a task to the executor with priority 0
@@ -129,9 +129,11 @@ func (e *executor) Submit(task Task) Executor {
 }
 
 func (e *executor) SubmitWithPriority(task Task, priority int) Executor {
+	e.tasksMutex.Lock()
 	if e.destroyed {
 		panic("cannot submit tasks on a destroyed executor")
 	}
+	e.tasksMutex.Unlock()
 
 	e.waitTasks.Add(1)
 	e.enqueueTask(PriorityTask{
@@ -144,8 +146,6 @@ func (e *executor) SubmitWithPriority(task Task, priority int) Executor {
 }
 
 func (e *executor) Destroy() {
-	e.destroyMutex.Lock()
-	defer e.destroyMutex.Unlock()
 	e.tasksMutex.Lock()
 	defer e.tasksMutex.Unlock()
 
@@ -163,14 +163,11 @@ func (e *executor) startWorker() {
 			for e.processNextTask() {
 			}
 
-			e.destroyMutex.Lock()
 			if e.destroyed {
-				e.destroyMutex.Unlock()
 				return
 			} else {
 				e.handlerReceiver <- signalWorkerFree
 			}
-			e.destroyMutex.Unlock()
 
 			break
 		}
