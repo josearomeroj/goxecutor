@@ -18,12 +18,12 @@ jobs:
       with:
         go-version: 1.18
         
-                
+        
     - name: Format
-    - uses: Jerome1337/gofmt-action@v1.0.4
+      uses: Jerome1337/gofmt-action@v1.0.4
       with:
         gofmt-flags: '-l -d'
-
+        
     - name: Build
       run: go build -v ./...
 
